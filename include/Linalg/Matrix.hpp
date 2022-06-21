@@ -1,5 +1,4 @@
 #pragma once
-
 #include <lapacke.h>
 
 #include <array>
@@ -7,34 +6,10 @@
 #include <iosfwd>
 #include <vector>
 
+#include "Linalg/Vector.hpp"
+
 namespace Linalg {
-
-class Vector {
- public:
-  Vector(int size) : m_data(size), m_SIZE(size) {}
-  Vector() : m_data(0), m_SIZE(0) {}
-
-  int size() { return m_SIZE; };
-  double &operator()(int n) {
-    if (0 <= n && n < m_SIZE) {
-      return m_data[n];
-    } else {
-      throw std::runtime_error("Index out of range");
-    }
-  }
-  double operator()(int n) const {
-    if (0 <= n && n < m_SIZE) {
-      return m_data[n];
-    } else {
-      throw std::runtime_error("Index out of range");
-    }
-  }
-  friend std::ostream &operator<<(std::ostream &os, const Vector &frac);
-
- private:
-  std::vector<double> m_data;
-  int m_SIZE;
-};
+class Vector;
 
 struct LU_status {
   int status;
@@ -48,6 +23,12 @@ class Matrix {
   Matrix(int col, int row) : m_data(col * row), m_COL(col), m_ROW(row) {}
   Matrix() : m_data(0), m_COL(0), m_ROW(0) {}
   Matrix(const Matrix &mat) : m_COL(mat.m_COL), m_ROW(mat.m_ROW) {
+    m_data = mat.m_data;
+  }
+  Matrix(const Matrix &mat, int col, int row) : m_COL(col), m_ROW(row) {
+    if (mat.m_ROW * mat.m_COL != col * row) {
+      throw std::runtime_error("配列の大きさが違います");
+    }
     m_data = mat.m_data;
   }
 
@@ -76,11 +57,15 @@ class Matrix {
     }
     return det;
   }
+  friend Vector;
+
+  // Vector に変換する
+  Vector to_vec();
 
   friend std::ostream &operator<<(std::ostream &os, const Matrix &frac);
   double &operator()(int col, int row) {
     if (col < m_COL && row < m_ROW) {
-      return m_data[col * m_ROW + row];
+      return m_data[row * m_COL + col];
     } else {
       throw std::runtime_error("Index out of range");
     }
@@ -88,16 +73,19 @@ class Matrix {
 
   double operator()(int col, int row) const {
     if (col < m_COL && row < m_ROW) {
-      return m_data[col * m_ROW + row];
+      return m_data[row * m_COL + col];
     } else {
       throw std::runtime_error("Index out of range");
     }
   }
 
+  double *data() { return m_data.data(); }
+
+  void save(const char *filename, const char delimeter = ',');
+
  private:
   std::vector<double> m_data;
   int m_COL, m_ROW;
-  int m_precision{3};
 };
 
 }  // namespace Linalg
