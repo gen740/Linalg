@@ -1,4 +1,4 @@
-#include "Matrix.hpp"
+#include "Linalg/Matrix.hpp"
 
 #include <iomanip>
 

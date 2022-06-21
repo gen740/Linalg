@@ -8,8 +8,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 message(${LINALG_SOURCES})
 add_library(linalg ${LINALG_SOURCES})
 
-target_include_directories(linalg PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
+find_package(OpenBlas CONFIG)
 
+target_include_directories(linalg PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(linalg PRIVATE openblas)
 
 # C++20 の有効化
 enable_language(CXX)
