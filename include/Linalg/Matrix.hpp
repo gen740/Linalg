@@ -11,8 +11,8 @@ namespace Linalg {
 
 class Vector {
  public:
-  Vector(int size) : m_SIZE(size), m_data(size) {}
-  Vector() : m_SIZE(0), m_data(0) {}
+  Vector(int size) : m_data(size), m_SIZE(size) {}
+  Vector() : m_data(0), m_SIZE(0) {}
 
   int size() { return m_SIZE; };
   double &operator()(int n) {
@@ -45,17 +45,17 @@ struct LU_status {
 
 class Matrix {
  public:
-  Matrix(int col, int row) : m_COL(col), m_ROW(row), m_data(col * row) {}
-  Matrix() : m_COL(0), m_ROW(0), m_data(0) {}
-  Matrix(const Matrix &mat)
-      : m_COL(mat.m_COL), m_ROW(mat.m_ROW), m_data(mat.m_data) {}
+  Matrix(int col, int row) : m_data(col * row), m_COL(col), m_ROW(row) {}
+  Matrix() : m_data(0), m_COL(0), m_ROW(0) {}
+  Matrix(const Matrix &mat) : m_COL(mat.m_COL), m_ROW(mat.m_ROW) {
+    m_data = mat.m_data;
+  }
 
   // {col, row}
   std::array<int, 2> shape() const { return {m_COL, m_ROW}; }
 
   LU_status lu() {
-    static LU_status status(m_ROW);
-    std::vector<int> ipiv;
+    LU_status status(m_ROW);
     status.status = LAPACKE_dgetrf(LAPACK_COL_MAJOR, m_COL, m_ROW,
                                    m_data.data(), m_COL, status.ipiv.data());
     return status;
