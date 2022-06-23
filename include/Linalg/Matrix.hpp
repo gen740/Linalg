@@ -82,10 +82,11 @@ class Matrix {
   double *data() { return m_data.data(); }
 
   void save(const char *filename, const char delimeter = ',');
+  void set_precision(int precision) { m_precision = precision; }
 
  private:
   std::vector<double> m_data;
-  int m_COL, m_ROW;
+  int m_COL, m_ROW, m_precision{4};
 };
 
 }  // namespace Linalg

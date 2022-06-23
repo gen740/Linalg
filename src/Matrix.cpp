@@ -9,7 +9,7 @@ namespace Linalg {
 
 std::ostream &operator<<(std::ostream &os, const Matrix &mat) {
   os << "Matrix " << mat.m_COL << "×" << mat.m_ROW << "\n";
-  // os << std::setprecision(mat.m_precision);
+  os << std::setprecision(mat.m_precision) << std::scientific;
   for (int i = 0; i < mat.m_COL; ++i) {
     os << "\t";
     for (int j = 0; j < mat.m_ROW; ++j) {
@@ -24,6 +24,7 @@ std::ostream &operator<<(std::ostream &os, const Matrix &mat) {
       }
     }
   }
+  os << std::defaultfloat;
   return os;
 }
 
@@ -36,7 +37,6 @@ Vector Matrix::to_vec() {
 void Matrix::save(const char *filename, const char delimeter) {
   std::ofstream file(filename);
   for (int i = 0; i < m_COL; ++i) {
-    file << "\t";
     for (int j = 0; j < m_ROW; ++j) {
       if (j == m_ROW - 1) {
         if (i == m_COL - 1) {
