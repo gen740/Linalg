@@ -2,13 +2,16 @@
 #include <lapacke.h>
 
 #include <array>
-#include <exception>
+#include <concepts>
 #include <iosfwd>
 #include <vector>
 
+#include "Linalg/Types.hpp"
 #include "Linalg/Vector.hpp"
 
 namespace Linalg {
+
+template <FloatingPointType T>
 class Vector;
 
 struct LU_status {
@@ -18,6 +21,7 @@ struct LU_status {
   LU_status(int size) : ipiv(size) {}
 };
 
+template <FloatingPointType T = double>
 class Matrix {
  public:
   Matrix(int col, int row) : m_data(col * row), m_COL(col), m_ROW(row) {}
@@ -25,25 +29,32 @@ class Matrix {
   Matrix(const Matrix &mat) : m_COL(mat.m_COL), m_ROW(mat.m_ROW) {
     m_data = mat.m_data;
   }
-  Matrix(const Matrix &mat, int col, int row) : m_COL(col), m_ROW(row) {
+  Matrix(const Matrix<T> &mat, int col, int row) : m_COL(col), m_ROW(row) {
     if (mat.m_ROW * mat.m_COL != col * row) {
       throw std::runtime_error("配列の大きさが違います");
     }
     m_data = mat.m_data;
   }
+  Matrix(Matrix<T> &&mat, int col, int row) : m_COL(col), m_ROW(row) {
+    if (mat.m_ROW * mat.m_COL != col * row) {
+      throw std::runtime_error("配列の大きさが違います");
+    }
+    m_data = std::move(mat.m_data);
+  }
+  Matrix(const Vector<T> &vec, int col, int row) : m_COL(col), m_ROW(row) {
+    if (vec.m_SIZE != col * row) {
+      throw std::runtime_error("配列の大きさが違います");
+    }
+    m_data = vec.m_data;
+  }
 
   // {col, row}
   std::array<int, 2> shape() const { return {m_COL, m_ROW}; }
 
-  LU_status lu() {
-    LU_status status(m_ROW);
-    status.status = LAPACKE_dgetrf(LAPACK_COL_MAJOR, m_COL, m_ROW,
-                                   m_data.data(), m_COL, status.ipiv.data());
-    return status;
-  }
+  LU_status lu();
 
-  double det() {
-    double det(1.);
+  T det() {
+    T det(1.);
     Matrix m = *this;
     if (m.m_ROW != m.m_COL) {
       throw std::runtime_error("Matrix is not squre");
@@ -57,36 +68,43 @@ class Matrix {
     }
     return det;
   }
-  friend Vector;
+  friend Vector<T>;
 
   // Vector に変換する
-  Vector to_vec();
+  Vector<T> to_vec() { return Vector<T>(*this); }
 
-  friend std::ostream &operator<<(std::ostream &os, const Matrix &frac);
-  double &operator()(int col, int row) {
-    if (col < m_COL && row < m_ROW) {
-      return m_data[row * m_COL + col];
+  template <FloatingPointType U>
+  friend std::ostream &operator<<(std::ostream &os, const Matrix<U> &mat);
+
+  T &operator()(int col, int row) {
+    if (1 <= col && col <= m_COL && 1 <= row && row <= m_ROW) {
+      return m_data[(row - 1) * m_COL + (col - 1)];
     } else {
       throw std::runtime_error("Index out of range");
     }
   }
-
-  double operator()(int col, int row) const {
-    if (col < m_COL && row < m_ROW) {
-      return m_data[row * m_COL + col];
+  T operator()(int col, int row) const {
+    if (1 <= col && col <= m_COL && 1 <= row && row <= m_ROW) {
+      return m_data[(row - 1) * m_COL + (col - 1)];
     } else {
       throw std::runtime_error("Index out of range");
     }
   }
+  T *operator[](int i) { return &m_data.data()[i * m_COL]; }
 
-  double *data() { return m_data.data(); }
+  operator T *() { return m_data.data(); }
 
-  void save(const char *filename, const char delimeter = ',');
-  void set_precision(int precision) { m_precision = precision; }
+  void save(const char *filename, const char delimeter = ',',
+            bool is_scientific = true);
+
+  static void set_precision(int precision);
+  static int get_precision();
 
  private:
-  std::vector<double> m_data;
-  int m_COL, m_ROW, m_precision{4};
+  static int *const m_precision;
+
+  std::vector<T> m_data;
+  int m_COL, m_ROW;
 };
 
 }  // namespace Linalg
