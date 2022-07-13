@@ -8,8 +8,8 @@
 #include <iostream>
 #include <vector>
 
-#include "Linalg/Matrix.hpp"
-#include "Linalg/Types.hpp"
+#include "linalg/Matrix.h"
+#include "linalg/Types.h"
 
 namespace Linalg {
 
@@ -31,13 +31,22 @@ class Vector {
     m_SIZE = mat.m_ROW * mat.m_COL;
   }
   int size() { return m_SIZE; };
+
+  void reshape(int size) {
+    m_SIZE = size;
+    m_data.resize(size);
+  }
+
+  // 1-index
   T &operator()(int n) {
-    if (0 <= n && n < m_SIZE) {
-      return m_data[n];
+    if (1 <= n && n <= m_SIZE) {
+      return m_data[n - 1];
     } else {
       throw std::runtime_error("Index out of range");
     }
   }
+
+  // 1-index
   T operator()(int n) const {
     if (0 <= n && n < m_SIZE) {
       return m_data[n];
@@ -45,6 +54,8 @@ class Vector {
       throw std::runtime_error("Index out of range");
     }
   }
+
+  operator T *() { return m_data.data(); }
 
   Matrix<T> to_mat(int col, int row) { return Vector<T>(*this); }
 

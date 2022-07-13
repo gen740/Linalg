@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(linalg)
-file(GLOB LINALG_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cc)
+project(linalg CXX)
+file(GLOB _LINALG_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cc)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
-message(${LINALG_SOURCES})
-add_library(linalg ${LINALG_SOURCES})
+message(${_LINALG_SOURCES})
+add_library(linalg ${_LINALG_SOURCES})
 
 find_package(OpenBlas CONFIG)
 

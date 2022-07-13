@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <lapacke.h>
 
-#include <Linalg/Core.hpp>
+#include <linalg/Core.h>
 #include <array>
 
 using Linalg::Matrix;
@@ -20,8 +20,6 @@ TEST(Lapacke, Basic) {
   m(3, 2) = 8;
   m(3, 3) = 10;
   // Matrix<float>::set_precision(10);
-  std::cout << m << std::endl;
-  std::cout << m.to_vec() << std::endl;
   std::array<int, 3> ipiv;
   // Matrix<2, 2> n({{1, 2}, {1, 2}});
   LAPACKE_dgetrf(LAPACK_COL_MAJOR, 3, 3, m, 3, ipiv.data());
